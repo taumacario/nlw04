@@ -1,59 +1,67 @@
-import { createContext, ReactNode, useEffect, useState } from 'react';
-import Cookies from 'js-cookie';
+import { createContext, ReactNode, useEffect, useState } from 'react'
+import Cookies from 'js-cookie'
 
-import challenges from "../../challenges.json"
-import { LevelUpModal } from '../components/LevelUpModal';
+import challenges from '../../challenges.json'
+import { LevelUpModal } from '../components/LevelUpModal'
 
 interface Challenge {
-  type: "body" | "eye";
-  description: string;
-  amount: number;
+  type: string
+  description: string
+  amount: number
 }
 
 interface ChallengesContextData {
-  level : number;
-  currentExperience : number;
-  challengesCompleted : number;
-  activeChallenge: Challenge;
-  experienceToNextLevel: number;
-  startNewChallenge : () => void;
-  levelUp: () => void;
-  resetChallenge: () => void;
-  completeChallenge:  () => void;
-  closeLevelUpModal:  () => void;
+  level: number
+  currentExperience: number
+  challengesCompleted: number
+  activeChallenge: Challenge | null
+  experienceToNextLevel: number
+  startNewChallenge: () => void
+  levelUp: () => void
+  resetChallenge: () => void
+  completeChallenge: () => void
+  closeLevelUpModal: () => void
 }
 
 interface ChallengesProviderProps {
-  children: ReactNode;
-  level: number;
-  currentExperience: number;
-  challengesCompleted: number;
+  children: ReactNode
+  level: number
+  currentExperience: number
+  challengesCompleted: number
 }
 
-export const ChallengesContext = createContext({} as ChallengesContextData);
+export const ChallengesContext = createContext({} as ChallengesContextData)
 
-export function ChallengesProvider({children, ...rest} : ChallengesProviderProps) {
-  const [level, setLevel] = useState(rest.level ?? 1);
-  const [currentExperience, setcurrentExperience] = useState(rest.currentExperience ?? 0 );
-  const [challengesCompleted, setchallengesCompleted] = useState(rest.challengesCompleted ?? 0);
+export function ChallengesProvider({
+  children,
+  ...rest
+}: ChallengesProviderProps) {
+  const [level, setLevel] = useState(rest.level ?? 1)
+  const [currentExperience, setcurrentExperience] = useState(
+    rest.currentExperience ?? 0
+  )
+  const [challengesCompleted, setchallengesCompleted] = useState(
+    rest.challengesCompleted ?? 0
+  )
 
-  const [activeChallenge, setActiveChallenge] = useState(null);
+  const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null)
   const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false)
 
-  const experienceToNextLevel = Math.pow((level + 1) *4, 2)
+  const experienceToNextLevel = Math.pow((level + 1) * 4, 2)
 
   useEffect(() => {
-    Notification.requestPermission();
+    Notification.requestPermission()
   }, []) /* quando usa o useEffect com array vazio no 2° parametro, isso indica que o estiver dentro da funçao será executado apenas 1 vez quando a página for exibida em tela.*/
 
-  useEffect(() => { /* dispara uma função sempre que tiver uma mudança. o array de dependcias, diz quando é essa mudança. */
+  useEffect(() => {
+    /* dispara uma função sempre que tiver uma mudança. o array de dependcias, diz quando é essa mudança. */
     Cookies.set('level', String(level))
     Cookies.set('currentExperience', String(currentExperience))
     Cookies.set('challengesCompleted', String(challengesCompleted))
-  }, [ level, currentExperience, challengesCompleted])
+  }, [level, currentExperience, challengesCompleted])
 
   function levelUp() {
-    setLevel(level + 1);
+    setLevel(level + 1)
     setIsLevelUpModalOpen(true)
   }
 
@@ -67,35 +75,35 @@ export function ChallengesProvider({children, ...rest} : ChallengesProviderProps
 
     setActiveChallenge(challenge)
 
-    new Audio ('/notification.mp3').play()
+    new Audio('/notification.mp3').play()
 
-    if (Notification.permission === "granted") {
-      new Notification ("Novo desafio 🎉", {
-        body: `Valendo ${challenge.amount} xp.`
+    if (Notification.permission === 'granted') {
+      new Notification('Novo desafio 🎉', {
+        body: `Valendo ${challenge.amount} xp.`,
       })
     }
   }
 
   function completeChallenge() {
     if (!activeChallenge) {
-      return;
+      return
     }
 
-    const {amount} = activeChallenge;
+    const { amount } = activeChallenge
 
-    let finalExperience = currentExperience + amount;
+    let finalExperience = currentExperience + amount
 
     if (finalExperience >= experienceToNextLevel) {
       finalExperience = finalExperience - experienceToNextLevel
-      levelUp();
+      levelUp()
     }
 
-    setcurrentExperience(finalExperience);
-    setActiveChallenge(null);
+    setcurrentExperience(finalExperience)
+    setActiveChallenge(null)
     setchallengesCompleted(challengesCompleted + 1)
   }
 
-  function resetChallenge(){
+  function resetChallenge() {
     setActiveChallenge(null)
   }
 
@@ -111,11 +119,11 @@ export function ChallengesProvider({children, ...rest} : ChallengesProviderProps
         levelUp,
         resetChallenge,
         completeChallenge,
-        closeLevelUpModal
+        closeLevelUpModal,
       }}
     >
       {children}
-      {isLevelUpModalOpen && <LevelUpModal/> }
+      {isLevelUpModalOpen && <LevelUpModal />}
     </ChallengesContext.Provider>
-  );
+  )
 }
